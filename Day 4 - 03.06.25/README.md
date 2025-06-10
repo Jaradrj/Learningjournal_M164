@@ -1,12 +1,13 @@
 # Learningjournal_M164
 
-# Day 3 - 27.05.25
+# Day 4 - 03.06.25
 
 ## Activities
 Today, we took our LB1-exam, which covered all the topics from the days before in a theoretical and practical part. After that, I worked on reviewing SQL-JOINs.
 
 ## Key Learnings
-Working on understanding JOINs made me realize the differences. I managed to practically apply this Knowledge by accomplishing Tasks.
+* Working on understanding JOINs made me realize the differences
+* I managed to practically apply this Knowledge by accomplishing Tasks
 
 ## Theory
 
