@@ -63,18 +63,19 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 
 -- CSV-Import
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/lehrer.csv'
+
+LOAD DATA LOCAL INFILE "C:/Projects/Learningjournal_M164/Day 8 - 01.07.25/scripts/lehrperson.csv"
 INTO TABLE lehrperson
 FIELDS TERMINATED BY ';'
 LINES TERMINATED BY '\r\n'
 IGNORE 1 LINES
-(@idlehrperson, @name, @geb)
+(@idlehrperson_lp, @name_lp, @geb_lp)
 SET
-  idlehrperson = CAST(@idlehrperson AS UNSIGNED),
-  name = TRIM(@name),
-  geburtsdatum = TRIM(@geburtsdatum);
+  idlehrperson = CAST(@idlehrperson_lp AS UNSIGNED),
+  name = TRIM(@name_lp),
+  geburtsdatum = NULLIF(TRIM(@geb_lp), '');
 
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/klasse.csv'
+LOAD DATA LOCAL INFILE "C:/Projects/Learningjournal_M164/Day 8 - 01.07.25/scripts/klasse.csv"
 INTO TABLE klasse
 FIELDS TERMINATED BY ';'
 LINES TERMINATED BY '\r\n'
@@ -84,19 +85,19 @@ SET
   idklasse = TRIM(@idklasse),
   lehrperson_idlehrperson = CAST(@lehrperson_idlehrperson AS UNSIGNED);
 
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/schueler.csv'
+LOAD DATA LOCAL INFILE "C:/Projects/Learningjournal_M164/Day 8 - 01.07.25/scripts/schueler.csv"
 INTO TABLE schueler
 FIELDS TERMINATED BY ';'
 LINES TERMINATED BY '\r\n'
 IGNORE 1 LINES
-(@idschueler, @name, @geb, @klasse)
+(@idschueler_sc, @name_sc, @geb_sc, @klasse_sc)
 SET
-  idschueler = CAST(@idschueler AS UNSIGNED),
-  name = TRIM(@name),
-  klasse_idklasse = TRIM(@klasse),
-  geburtsdatum = TRIM(@geburtsdatum);
+  idschueler = CAST(@idschueler_sc AS UNSIGNED),
+  name = TRIM(@name_sc),
+  geburtsdatum = NULLIF(TRIM(@geb_sc), ''),
+  klasse_idklasse = TRIM(@klasse_sc);
 
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/freifaecher.csv'
+LOAD DATA lOCAL INFILE "C:/Projects/Learningjournal_M164/Day 8 - 01.07.25/scripts/freifach.csv"
 INTO TABLE freifach
 FIELDS TERMINATED BY ';'
 LINES TERMINATED BY '\r\n'
@@ -108,7 +109,7 @@ SET
   tag = TRIM(@tag),
   zimmer = TRIM(@zimmer);
 
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/zwischentabelle.csv'
+LOAD DATA LOCAL INFILE "C:/Projects/Learningjournal_M164/Day 8 - 01.07.25/scripts/schueler_has_freifaecher.csv"
 INTO TABLE schueler_has_freifach
 FIELDS TERMINATED BY ';'
 LINES TERMINATED BY '\r\n'
@@ -164,42 +165,16 @@ SELECT *
 FROM schueler_has_freifach;
 
 
--- Einfügen weiterer Daten
+-- Einfügen weiterer Daten (über mysqlimport im cmd)
 
 SET FOREIGN_KEY_CHECKS = 0;
 
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/schueler1.csv' INTO TABLE schueler CHARACTER SET utf8mb4
-FIELDS TERMINATED BY ';' LINES TERMINATED BY '\r\n' IGNORE 1 LINES
-(@Nr, @Nachname, @Vorname, @GebDatum, @KlassenNr)
-SET
-  idschueler = @Nr,
-  name = CONCAT(TRIM(@Nachname), ' ', TRIM(@Vorname)),
-  geburtsdatum = TRIM(@GebDatum),
-  klasse_idklasse = @KlassenNr;
-
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/freifaecher1.csv'
-INTO TABLE schueler_has_freifach
-FIELDS TERMINATED BY ';'
-LINES TERMINATED BY '\r\n'
-IGNORE 1 LINES
-(@Nr, @FreifachNr)
-SET 
-  schueler_idschueler = @Nr,
-  freifach_idfreifach = NULLIF(@FreifachNr, '');
-
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/freifaecher1.csv'
-INTO TABLE schueler_has_freifach
-FIELDS TERMINATED BY ';'
-LINES TERMINATED BY '\r\n'
-IGNORE 1 LINES
-(@Nr, @FreifachNr)
-SET 
-  schueler_idschueler = @Nr,
-  freifach_idfreifach = NULLIF(@FreifachNr, '');
-
-SET FOREIGN_KEY_CHECKS = 1;
-
-SELECT * FROM schueler;
+-- mysqlimport --local --user=root --password=passwort --host=localhost \
+-- --fields-terminated-by=';' --lines-terminated-by='\r\n' \
+-- --ignore-lines=1 \
+-- freifaecher \
+-- "C:/Projects/Learningjournal_M164/Day 8 - 01.07.25/scripts/schueler1.csv" \
+-- "C:/Projects/Learningjournal_M164/Day 8 - 01.07.25/scripts/schueler_has_freifaecher1.csv" 
 
 
 -- Abfragen
@@ -226,7 +201,7 @@ WHERE f.beschreibung IN ('Chor', 'Elektronik');
 
 -- Ausgabe speichern
 SELECT k.idklasse AS Klasse, COUNT(DISTINCT shf.schueler_idschueler) AS Anzahl_Schueler
-INTO OUTFILE 'C:/Projects/Learningjournal_M164/Day 7 - 24.06.25/scripts/outfile.csv'
+INTO OUTFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/outfile.txt'
 FIELDS TERMINATED BY ';' ENCLOSED BY '"'
 LINES TERMINATED BY '\r\n'
 FROM klasse k
@@ -235,6 +210,5 @@ LEFT JOIN schueler_has_freifach shf ON s.idschueler = shf.schueler_idschueler
 GROUP BY k.idklasse
 ORDER BY k.idklasse;
 
-
 -- Backup (in CMD)
--- mysqldump -u admin -p passwort > C:/Projects/Learningjournal_M164/Day 7 - 24.06.25/scripts/freifaecher_backup.sql
+-- mysqldump -u root -p Freifaecher > C:/Projects/Learningjournal_M164/Day 7 - 24.06.25/scripts/freifaecher_backup.sql
